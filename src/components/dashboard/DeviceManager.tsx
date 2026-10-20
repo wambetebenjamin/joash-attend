@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Fingerprint, Plus, RefreshCw, ScanFace, Wifi, WifiOff, X } from 'lucide-react';
 import type { BiometricDevice } from '@/types';
@@ -35,6 +35,9 @@ export default function DeviceManager({ initialDevices, locations }: Props) {
     latencyMs: number;
     deviceId: string;
   } | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => setMounted(true), []);
 
   const addDevice = async () => {
     setBusy(true);
@@ -168,12 +171,16 @@ export default function DeviceManager({ initialDevices, locations }: Props) {
               </div>
               <div>
                 <p className="tiny">Last sync</p>
-                <strong style={{ fontSize: '0.88rem' }}>{relative(device.lastSync)}</strong>
+                <strong style={{ fontSize: '0.88rem' }}>
+                  {mounted ? relative(device.lastSync) : 'Checking device clock'}
+                </strong>
               </div>
             </div>
 
             <div className="row between wrap gap-8" style={{ marginTop: 18 }}>
-              <span className="tiny">{new Date(device.lastSync).toLocaleString('en-KE')}</span>
+              <span className="tiny">
+                {mounted ? new Date(device.lastSync).toLocaleString('en-KE') : 'Awaiting browser clock'}
+              </span>
               <button
                 type="button"
                 className="btn btn-ghost btn-sm"

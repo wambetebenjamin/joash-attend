@@ -28,11 +28,16 @@ const reportTypes = [
   { value: 'individual', label: 'Individual Staff Report' },
 ];
 
-export default function ReportBuilder({ staff, departments }: { staff: Staff[]; departments: string[] }) {
-  const today = new Date();
-  const firstOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-  const [from, setFrom] = useState(firstOfMonth.toISOString().slice(0, 10));
-  const [to, setTo] = useState(today.toISOString().slice(0, 10));
+interface Props {
+  staff: Staff[];
+  departments: string[];
+  defaultFrom: string;
+  defaultTo: string;
+}
+
+export default function ReportBuilder({ staff, departments, defaultFrom, defaultTo }: Props) {
+  const [from, setFrom] = useState(defaultFrom);
+  const [to, setTo] = useState(defaultTo);
   const [department, setDepartment] = useState('');
   const [type, setType] = useState('daily');
   const [staffId, setStaffId] = useState(staff[0]?.id ?? '');

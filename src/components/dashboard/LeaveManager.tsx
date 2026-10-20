@@ -8,17 +8,18 @@ import { formatShortDate, monthMatrix, parseISO } from '@/lib/date';
 
 interface Props {
   initialLeaves: LeaveRequest[];
+  initialYear: number;
+  initialMonth: number;
 }
 
 const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
-export default function LeaveManager({ initialLeaves }: Props) {
+export default function LeaveManager({ initialLeaves, initialYear, initialMonth }: Props) {
   const [leaves, setLeaves] = useState(initialLeaves);
   const [tab, setTab] = useState<'pending' | 'calendar'>('pending');
   const [feedback, setFeedback] = useState<{ kind: 'success' | 'error'; text: string } | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
-  const now = new Date();
-  const [cursor, setCursor] = useState({ year: now.getFullYear(), month: now.getMonth() });
+  const [cursor, setCursor] = useState({ year: initialYear, month: initialMonth });
 
   const pending = useMemo(() => leaves.filter((leave) => leave.status === 'pending'), [leaves]);
   const approved = useMemo(() => leaves.filter((leave) => leave.status === 'approved'), [leaves]);
