@@ -251,6 +251,16 @@ attendance system for my organisation."
 8. WhatsApp entrance pop and pulse keyframes.
 9. Framer Motion reveal on the demo dashboard.
 
+**Forms and verification.** reCAPTCHA v3 runs invisibly on the demo and contact
+forms, sign in, sign up, the member leave request, and the admin staff and device
+forms, each verified server side with a matching action name. Scores below 0.5
+surface a v2 challenge step when a v2 site key is configured.
+
+**Staff avatars.** Staff and student rows use generated initials avatars rather
+than stock portraits. The template's bundled avatars are photographs of people
+who are not East African, and using stock faces for 80 fictional Kenyan staff
+would misrepresent real people.
+
 **Accessibility and safety.** Semantic tables with scoped headers, labelled forms,
 visible focus rings, `aria-live` on the live feed, `role="status"` on the loader,
 `aria-pressed` on toggles, reduced motion support, and role checked API handlers.

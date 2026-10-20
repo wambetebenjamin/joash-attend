@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { requireRole } from '@/lib/guard';
+import { verifyRecaptcha } from '@/lib/recaptcha';
 import { addDevice, getDevices } from '@/lib/repository';
 
 export const dynamic = 'force-dynamic';
@@ -9,6 +10,7 @@ const deviceSchema = z.object({
   deviceId: z.string().min(4).max(40),
   location: z.string().min(3).max(90),
   type: z.enum(['fingerprint', 'face-id']),
+  recaptchaToken: z.string().optional(),
 });
 
 export async function GET() {
@@ -26,6 +28,14 @@ export async function POST(request: Request) {
   const parsed = deviceSchema.safeParse(json);
   if (!parsed.success) {
     return NextResponse.json({ error: 'Invalid device details.', issues: parsed.error.flatten().fieldErrors }, { status: 422 });
+  }
+
+  const captcha = await verifyRecaptcha(parsed.data.recaptchaToken, 'device_create');
+  if (!captcha.success) {
+    return NextResponse.json(
+      { error: 'Verification failed. Please retry the form.', challengeRequired: captcha.challengeRequired },
+      { status: 400 },
+    );
   }
 
   const device = {

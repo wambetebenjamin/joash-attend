@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { requireRole } from '@/lib/guard';
+import { verifyRecaptcha } from '@/lib/recaptcha';
 import { getStaffDirectory, addStaffMember } from '@/lib/repository';
 import type { Staff } from '@/types';
 
@@ -14,6 +15,7 @@ const staffSchema = z.object({
   role: z.string().min(2).max(60),
   location: z.string().min(2).max(80),
   joinedAt: z.string().min(8).max(10).optional(),
+  recaptchaToken: z.string().optional(),
 });
 
 export async function GET(request: Request) {
@@ -52,6 +54,14 @@ export async function POST(request: Request) {
   const parsed = staffSchema.safeParse(json);
   if (!parsed.success) {
     return NextResponse.json({ error: 'Invalid staff details.', issues: parsed.error.flatten().fieldErrors }, { status: 422 });
+  }
+
+  const captcha = await verifyRecaptcha(parsed.data.recaptchaToken, 'staff_create');
+  if (!captcha.success) {
+    return NextResponse.json(
+      { error: 'Verification failed. Please retry the form.', challengeRequired: captcha.challengeRequired },
+      { status: 400 },
+    );
   }
 
   const directory = await getStaffDirectory();

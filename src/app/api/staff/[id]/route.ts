@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { requireRole } from '@/lib/guard';
+import { verifyRecaptcha } from '@/lib/recaptcha';
 import { getStaffDirectory, removeStaffMember, updateStaffMember } from '@/lib/repository';
 
 export const dynamic = 'force-dynamic';
@@ -13,6 +14,7 @@ const patchSchema = z.object({
   role: z.string().min(2).max(60).optional(),
   location: z.string().min(2).max(80).optional(),
   status: z.enum(['active', 'inactive']).optional(),
+  recaptchaToken: z.string().optional(),
 });
 
 export async function GET(_request: Request, context: { params: Promise<{ id: string }> }) {
@@ -34,7 +36,16 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
   if (!parsed.success) {
     return NextResponse.json({ error: 'Invalid update.', issues: parsed.error.flatten().fieldErrors }, { status: 422 });
   }
-  const updated = await updateStaffMember(id, parsed.data);
+  const captcha = await verifyRecaptcha(parsed.data.recaptchaToken, 'staff_update');
+  if (!captcha.success) {
+    return NextResponse.json(
+      { error: 'Verification failed. Please retry the form.', challengeRequired: captcha.challengeRequired },
+      { status: 400 },
+    );
+  }
+
+  const { recaptchaToken: _token, ...patch } = parsed.data;
+  const updated = await updateStaffMember(id, patch);
   if (!updated) return NextResponse.json({ error: 'Staff member not found.' }, { status: 404 });
   return NextResponse.json({ staff: updated });
 }

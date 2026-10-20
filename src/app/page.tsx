@@ -26,7 +26,8 @@ import SmoothScroll from '@/components/system/SmoothScroll';
 import Reveal from '@/components/system/Reveal';
 import PricingSection from '@/components/marketing/PricingSection';
 import DemoRequestForm from '@/components/marketing/DemoRequestForm';
-import { getTodaySummary } from '@/lib/mock';
+import DashboardPreview from '@/components/marketing/DashboardPreview';
+import { getDailyAttendanceRates, getLiveEvents, getTodaySummary } from '@/lib/mock';
 
 export const dynamic = 'force-dynamic';
 
@@ -98,6 +99,8 @@ const testimonials = [
 
 export default function LandingPage() {
   const summary = getTodaySummary();
+  const daily = getDailyAttendanceRates(30);
+  const live = getLiveEvents(0);
 
   return (
     <>
@@ -194,6 +197,18 @@ export default function LandingPage() {
             </div>
           </div>
         </section>
+
+        <DashboardPreview
+          summary={{
+            present: summary.present,
+            absent: summary.absent,
+            late: summary.late,
+            attendanceRate: summary.attendanceRate,
+            monthRate: summary.monthRate,
+          }}
+          daily={daily}
+          feed={live.events}
+        />
 
         <section className="section-tight" style={{ borderTop: '1px solid var(--color-hairline)', background: '#fff' }}>
           <div className="container row between wrap gap-24">

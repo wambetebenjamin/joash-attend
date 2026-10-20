@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Eye, Pencil, Plus, Search, UserMinus, X } from 'lucide-react';
 import type { Staff } from '@/types';
 import { formatShortDate } from '@/lib/date';
+import { useRecaptcha } from '@/components/system/useRecaptcha';
 
 interface Props {
   initialStaff: Staff[];
@@ -23,6 +24,7 @@ const emptyForm = {
 };
 
 export default function StaffDirectory({ initialStaff, departments, locations }: Props) {
+  const { execute } = useRecaptcha();
   const [staff, setStaff] = useState(initialStaff);
   const [search, setSearch] = useState('');
   const [department, setDepartment] = useState('');
@@ -78,12 +80,13 @@ export default function StaffDirectory({ initialStaff, departments, locations }:
   const submit = async () => {
     setBusy(true);
     setFeedback(null);
+    const recaptchaToken = await execute(modal === 'add' ? 'staff_create' : 'staff_update');
     try {
       if (modal === 'add') {
         const response = await fetch('/api/staff', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(form),
+          body: JSON.stringify({ ...form, recaptchaToken }),
         });
         const payload = (await response.json()) as { staff?: Staff; error?: string };
         if (!response.ok || !payload.staff) {
@@ -96,7 +99,7 @@ export default function StaffDirectory({ initialStaff, departments, locations }:
         const response = await fetch(`/api/staff/${editing.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(form),
+          body: JSON.stringify({ ...form, recaptchaToken }),
         });
         const payload = (await response.json()) as { staff?: Staff; error?: string };
         if (!response.ok || !payload.staff) {

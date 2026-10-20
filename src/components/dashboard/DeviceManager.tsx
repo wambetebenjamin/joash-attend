@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Fingerprint, Plus, RefreshCw, ScanFace, Wifi, WifiOff, X } from 'lucide-react';
 import type { BiometricDevice } from '@/types';
+import { useRecaptcha } from '@/components/system/useRecaptcha';
 
 interface Props {
   initialDevices: BiometricDevice[];
@@ -22,6 +23,7 @@ const relative = (iso: string) => {
 };
 
 export default function DeviceManager({ initialDevices, locations }: Props) {
+  const { execute } = useRecaptcha();
   const [devices, setDevices] = useState(initialDevices);
   const [modal, setModal] = useState(false);
   const [form, setForm] = useState({ deviceId: '', location: locations[0] ?? '', type: 'fingerprint' });
@@ -37,11 +39,12 @@ export default function DeviceManager({ initialDevices, locations }: Props) {
   const addDevice = async () => {
     setBusy(true);
     setFeedback(null);
+    const recaptchaToken = await execute('device_create');
     try {
       const response = await fetch('/api/devices', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, recaptchaToken }),
       });
       const payload = (await response.json()) as { device?: BiometricDevice; error?: string };
       if (!response.ok || !payload.device) {
